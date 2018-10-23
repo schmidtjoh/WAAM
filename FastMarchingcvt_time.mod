@@ -14,8 +14,6 @@ param phi_w; # maximal temperature
 param kappa_w; # coefficient for blending heat from laser (kappa_w) and existing node heat (1-kappa_w), (>=0 <=1)
 param kappa_e; # decay of temperature in node per time step (>=0 <=1)
 param v_w; #speed of welding head when welding
-param v_m; # speed of welding head when moving without welding
-param delta_t; #length of one timestep
 
 check: v_w >=0;
 check: kappa_w in [0,1];
@@ -25,8 +23,7 @@ check: kappa_e in [0,1];
 
 set A = {i1 in V, i2 in V: i1!=i2}; 
 param dist{(i,j) in A} = ceil(sqrt((X[i]-X[j])**2+(Y[i]-Y[j])**2)*100)/100;
-#param dt_A{(i,j) in A} = floor((dist[i,j]/v_m)/delta_t);
-param dt_W{(i,j) in W} = floor((l[i,j]/v_w)/delta_t);
+param dt_W{(i,j) in W} = floor((l[i,j]/v_w));
 param dt_WW{(i,j) in WW} = if (i,j) in W then dt_W[i,j] else dt_W[j,i];
 
 # NODE DEGREE
@@ -60,19 +57,25 @@ subject to start_somewhere:
 	sum{(i,j) in WW} x[i,j,1] == 1;
 
 subject to end_somewhere:
-	sum{(i,j) in WW} x[i,j,number_of_steps-dt_WW[i,j]] == 1;
+	sum{(i,j) in WW} x[i,j,number_of_steps] == 1;
 
 subject to limit_y:
 	sum {(i,j) in A, p in P} y[i,j,p] == number_of_odd_nodes / 2 - 1;
 
 subject to weld {(i,j) in W}:
-	sum {p in P} (x[i,j,p]+x[j,i,p]) == 1;
+	sum {p in P} (x[i,j,p]+x[j,i,p]) == dt_W[i,j];
 
-subject to unique {p in P: p in (1,number_of_steps)}: 
+subject to more_period_work_t1{(i,j) in WW}:
+	sum {k in {p..p+delta_WW[i,j]}} x[i,j,k] >= dt_WW[i,j] * x[i,j,1];
+	
+subject to more_period_work {(i,j) in WW, p in P: 1<p<=number_of_steps-dt_WW[i,j]-1}:
+	sum {k in {p..p+delta_WW[i,j]-1}} x[i,j,k] >= dt_WW[i,j] * (x[i,j,p]-x[i,j,p-1]);
+
+subject to unique {p in P: p in [1,number_of_steps)}: 
 	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] == 1;
 	
 subject to path_cont {j in V, p in P: p < number_of_steps}:
-	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] <= sum {(j,k) in WW} x[j,k,p+dt_WW[i,j]] + sum {(j,k) in A} y[j,k,p+1];
+	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] <= sum {(i,j) in WW} x[i,j,p] + sum {(j,k) in WW} x[j,k,p+dt_WW[i,j]] + sum {(j,k) in A} y[j,k,p+1];
 
 subject to no_cons_y {(k,m) in A, p in P: p in (1,number_of_steps)}:
 	sum {(i,j) in A} y[i,j,p] + sum {(i,j) in A} y[i,j,p+1] <=1;
