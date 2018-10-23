@@ -25,4 +25,4 @@ param kappa_w := 0.5; # coefficient for blending heat from laser (kappa_w) and e
 param kappa_e := 0.95; # decay of temperature in node per time step (>=0 <=1) 
 param v_w := 0.5; # speed of welding head when welding
 #param v_m := 1; #speed of welding head when moving without welding
-param delta_t := 0.5; # length of one timestep
+#param delta_t := 0.5; # length of one timestep
