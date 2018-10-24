@@ -32,7 +32,7 @@ set INCIDENCE {v in V} = {(i,j) in W: i==v || j==v};
 param degree {v in V} = card(INCIDENCE[v]);
 
 param number_of_odd_nodes = card({v in V: degree[v] mod 2 == 1});
-param number_of_steps = number_of_odd_nodes / 2 + card(W) -1;
+param number_of_steps = sum {(i,j) in W} dt_W[i,j] + number_of_odd_nodes / 2 -1;
 
 #INDEX SETS TIME
 
