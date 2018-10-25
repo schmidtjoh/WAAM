@@ -43,13 +43,17 @@ set P0= P union {0};
 
 var x {(i,j) in WW, p in P} binary;
 var y {(i,j) in A, p in P} binary;
+var x_ind {(i,j) in WW, p in P} binary;
+var c {j in V, p in P} binary;
+var prod_temp_ind {(i,j) in WW, p in P} >=0;
+
 
 var temp {i in V, p in P0} in [0,phi_w];
 var maxtemp in [0,phi_w];
 
 #OBJECTIVE
 
-minimize time: sum{(i,j) in A, p in P} dist[i,j]*y[i,j,p]+maxtemp;# sum {i in V, p in P} temp[i,p];
+minimize time: sum{(i,j) in A, p in P} dist[i,j]*y[i,j,p]+maxtemp;
 
 #CONSTRAINTS
 
@@ -73,21 +77,54 @@ subject to more_period_work {(i,j) in WW, p in P: 1<p<=number_of_steps-dt_WW[i,j
 
 subject to unique {p in P: p in [1,number_of_steps)}: 
 	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] == 1;
-	
-subject to path_cont {j in V, p in P: p < number_of_steps}:
-	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] <= sum {(i,j) in WW} x[i,j,p+1]+ sum {(j,k) in WW} x[j,k,p+1] + sum {(j,k) in A} y[j,k,p+1];
+#Problem: Arbeit auf gleicher Kante über mehrere Zeitschritte (  Binärvariable geeignet ersetzen oder in Verbindung bringen)	
+subject to path_cont1 {j in V, p in P: p < number_of_steps}:
+	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] <= sum {(j,k) in WW} x[j,k,p+1] + sum {(j,k) in A} y[j,k,p+1] + 10 * c[j,p];
+
+subject to path_cont2 {(i,j) in WW, p in P: p < number_of_steps}:
+	x[i,j,p] + y[i,j,p] <= x[i,j,p+1] + 10 * (1 - c[j,p]); 
 
 subject to no_cons_y {(k,m) in A, p in P: p in (1,number_of_steps)}:
 	sum {(i,j) in A} (y[i,j,p] + y[i,j,p+1]) <=1;
 
+subject to limit_c {p in P}:
+	sum {j in V} c[j,p] <= 1;
+	
+subject to init_indicator {(i,j)in WW}:
+	x_ind[i,j,1] == x[i,j,1];
+
+subject to set_indicator {(i,j) in WW, p in P: p>1}:
+	x[i,j,p] - x[i,j,p-1] <= x_ind[i,j,p];
+
+subject to limit_indicator {(i,j) in WW}:
+	sum {p in P} x_ind[i,j,p] <= 1;
+
+subject to prod_constr1 {(i,j) in WW, p in P}:
+	prod_temp_ind[i,j,p] <= phi_w * x_ind[i,j,p];
+
+subject to prod_constr2 {(i,j) in WW, p in P}:
+	prod_temp_ind[i,j,p] <= temp[i,p-1];
+
+subject to prod_constr3 {(i,j) in WW, p in P}:
+	prod_temp_ind[i,j,p] >= temp[i,p-1]-phi_w * (1 - x_ind[i,j,p]);	
+
 subject to start_temp {i in V}:
 	temp[i,0] == kappa_w * phi_w * sum {(i,j) in WW} x[i,j,1];
 
+#Gleichungen für ind == 1, wenn nicht mehr erwärmen
+#subject to compute_temp1_lb {j in V,(m,n) in WW, p in P}:
+#	temp[j,p] >= (1-kappa_w)*kappa_e*temp[j,p-1] - (1-kappa_w)*kappa_e*prod_temp_ind[m,n,p]+ kappa_w * phi_w - kappa_w * phi_w * prod_temp_ind[m,n,p] + kappa_e * prod_temp_ind[m,n,p] - phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
+#
+#subject to compute_temp1_ub {j in V,(m,n) in WW, p in P}:
+#	temp[j,p] <= (1-kappa_w)*kappa_e*temp[j,p-1] - (1-kappa_w)*kappa_e*prod_temp_ind[m,n,p]+ kappa_w * phi_w - kappa_w * phi_w * prod_temp_ind[m,n,p] + kappa_e * prod_temp_ind[m,n,p] + phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
+
+#Gleichungen für ind == 0, wenn nicht erwärmen (Indices überprüfen, nachdenken welche eingesetzt werden müssen)
 subject to compute_temp1_lb {j in V, p in P}:
-	temp[j,p] >= (1-kappa_w)*kappa_e*temp[j,p-1] + kappa_w * phi_w - phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
+	temp[j,p] >= (1-kappa_w)*kappa_e*(sum { (j,n) in WW} prod_temp_ind[j,n,p])+ kappa_w * phi_w * ( sum{(j,n) in WW} x_ind[j,n,p]) + kappa_e * (temp[j,p-1]-(sum {(j,n) in WW} prod_temp_ind[j,n,p])) - phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
 
 subject to compute_temp1_ub {j in V, p in P}:
-	temp[j,p] <= (1-kappa_w)*kappa_e*temp[j,p-1] + kappa_w * phi_w + phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
+	temp[j,p] <= (1-kappa_w)*kappa_e*(sum { (j,n) in WW} prod_temp_ind[j,n,p])+ kappa_w * phi_w *  ( sum{(j,n) in WW} x_ind[j,n,p]) + kappa_e * (temp[j,p-1]-(sum {(j,n) in WW} prod_temp_ind[j,n,p])) + phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
+
 
 subject to compute_temp2_lb {j in V, p in P}:
 	temp[j,p] >= kappa_e*temp[j,p-1] - phi_w * (sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]);	
