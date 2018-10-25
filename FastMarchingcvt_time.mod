@@ -120,10 +120,10 @@ subject to start_temp {i in V}:
 
 #Gleichungen für ind == 0, wenn nicht erwärmen (Indices überprüfen, nachdenken welche eingesetzt werden müssen)
 subject to compute_temp1_lb {j in V, p in P}:
-	temp[j,p] >= (1-kappa_w)*kappa_e*(sum { (j,n) in WW} prod_temp_ind[j,n,p])+ kappa_w * phi_w * ( sum{(j,n) in WW} x_ind[j,n,p]) + kappa_e * (temp[j,p-1]-(sum {(j,n) in WW} prod_temp_ind[j,n,p])) - phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
+	temp[j,p] >= (1-kappa_w)*kappa_e*(sum { (j,n) in WW} prod_temp_ind[j,n,p])+ kappa_w * phi_w * ( sum{(j,n) in WW} (x_ind[j,n,p]+x_ind[n,j,p])) + kappa_e * (temp[j,p-1]-(sum {(j,n) in WW} prod_temp_ind[j,n,p])) - phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
 
 subject to compute_temp1_ub {j in V, p in P}:
-	temp[j,p] <= (1-kappa_w)*kappa_e*(sum { (j,n) in WW} prod_temp_ind[j,n,p])+ kappa_w * phi_w *  ( sum{(j,n) in WW} x_ind[j,n,p]) + kappa_e * (temp[j,p-1]-(sum {(j,n) in WW} prod_temp_ind[j,n,p])) + phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
+	temp[j,p] <= (1-kappa_w)*kappa_e*(sum { (j,n) in WW} prod_temp_ind[j,n,p])+ kappa_w * phi_w *  ( sum{(j,n) in WW} (x_ind[j,n,p]+x_ind[n,j,p])) + kappa_e * (temp[j,p-1]-(sum {(j,n) in WW} prod_temp_ind[j,n,p])) + phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
 
 
 subject to compute_temp2_lb {j in V, p in P}:
