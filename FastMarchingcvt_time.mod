@@ -49,7 +49,7 @@ var c {j in V, p in P} binary;
 var prod_temp_ind {j in V, p in P} >=0;
 
 
-var temp {i in V, p in P} in [0,phi_w];
+var temp {i in V, p in P0} in [0,phi_w];
 var maxtemp in [0,phi_w];
 
 #OBJECTIVE
@@ -94,15 +94,21 @@ subject to no_cons_y {(k,m) in A, p in P: p in (1,number_of_steps)}:
 subject to limit_c {p in P}:
 	sum {j in V} c[j,p] <= 1;
 	
-# Problem: erste Kante dauert zu lange...	
 subject to init_indicator {j in V}:
 	x_ind[j,0] == x0[j];
 
-subject to set_indicator {j in V, p in P: p>1}:
-	sum {(i,j) in WW} (x[i,j,p] - x[i,j,p-1]) + sum {(i,j) in A} y[i,j,p] <= x_ind[j,p];
+subject to set_indicator1 {j in V}:
+	sum {(i,j) in WW} (x[i,j,1] - x0[i]) <= x_ind[j,1];
+
+# Indikator beim Verlassen der Kante nicht richtig gesetzt!
+subject to set_indicator2 {j in V, p in P: p>1}:
+	sum {(i,j) in WW} (x[i,j,p] - x[i,j,p-1])  <= x_ind[j,p];
+
+subject to set_indicator3 {j in V, p in P: p>1}:
+	sum {(i,j) in A} y[i,j,p] <= x_ind[j,p];
 
 subject to limit_indicator1 {j in V}:
-	sum {p in P} x_ind[j,p] <= degree[j]+1;
+	sum {p in P} x_ind[j,p] <= ceil(degree[j] / 2);
 	
 subject to limit_indicator2 {p in P}:	
 	sum {j in V} x_ind[j,p] <= 1;
@@ -110,29 +116,29 @@ subject to limit_indicator2 {p in P}:
 subject to prod_constr1 {j in V, p in P}:
 	prod_temp_ind[j,p] <= phi_w * x_ind[j,p];
 
-subject to prod_constr2 {j in V, p in P: p>1}:
+subject to prod_constr2 {j in V, p in P}:
 	prod_temp_ind[j,p] <= temp[j,p-1];
 
-subject to prod_constr3 {j in V, p in P: p>1}:
+subject to prod_constr3 {j in V, p in P}:
 	prod_temp_ind[j,p] >= temp[j,p-1]-phi_w * (1 - x_ind[j,p]);	
 
 subject to start_temp {i in V}:
-	temp[i,1] == kappa_w * phi_w * x0[i];
+	temp[i,0] == kappa_w * phi_w * x0[i];
 
-subject to compute_temp1_lb {j in V, p in P: p>1}:
+subject to compute_temp1_lb {j in V, p in P}:
 	temp[j,p] >= (1-kappa_w)*kappa_e* prod_temp_ind[j,p]+ kappa_w * phi_w * x_ind[j,p] + kappa_e * (temp[j,p-1] - prod_temp_ind[j,p]) - phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
 
-subject to compute_temp1_ub {j in V, p in P:p>1}:
+subject to compute_temp1_ub {j in V, p in P}:
 	temp[j,p] <= (1-kappa_w)*kappa_e* prod_temp_ind[j,p]+ kappa_w * phi_w * x_ind[j,p] + kappa_e * (temp[j,p-1]- prod_temp_ind[j,p]) + phi_w * (1-(sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]));
 
 
-subject to compute_temp2_lb {j in V, p in P: p>1}:
+subject to compute_temp2_lb {j in V, p in P}:
 	temp[j,p] >= kappa_e*temp[j,p-1] - phi_w * (sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]);	
 
-subject to compute_temp2_ub {j in V, p in P: p>1}:
+subject to compute_temp2_ub {j in V, p in P}:
 	temp[j,p] <= kappa_e*temp[j,p-1] + phi_w * (sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]);	
 
-subject to compute_maxtemp {i in V, p in P}:
+subject to compute_maxtemp {i in V, p in P0}:
 	temp[i,p] <= maxtemp;		
 	
 	
