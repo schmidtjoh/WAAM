@@ -98,13 +98,14 @@ subject to init_indicator {j in V}:
 	x_ind[j,0] == x0[j];
 
 subject to set_indicator1 {j in V}:
-	sum {(i,j) in WW} (x[i,j,1] - x0[i]) <= x_ind[j,1];
+	sum {(i,j) in WW} (x[i,j,1]) <= x_ind[j,1];
 
 # Indikator beim Verlassen der Kante nicht richtig gesetzt!
 subject to set_indicator2 {j in V, p in P: p>1}:
-	sum {(i,j) in WW} (x[i,j,p] - x[i,j,p-1])  <= x_ind[j,p];
+	sum {(i,j) in WW} (x[i,j,p-1] - x[i,j,p]) <= x_ind[j,p-1];
 
-subject to set_indicator3 {j in V, p in P: p>1}:
+
+subject to set_indicator4 {j in V, p in P: p>1}:
 	sum {(i,j) in A} y[i,j,p] <= x_ind[j,p];
 
 subject to limit_indicator1 {j in V}:
