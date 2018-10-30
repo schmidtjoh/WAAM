@@ -88,7 +88,7 @@ subject to path_cont1 {j in V, p in P: p < number_of_steps}:
 subject to path_cont2 {(i,j) in WW, p in P: p < number_of_steps}:
 	x[i,j,p] + y[i,j,p] <= x[i,j,p+1] + 10 * (1 - c[j,p]); 
 
-subject to no_cons_y {(k,m) in A, p in P: p in (1,number_of_steps)}:
+subject to no_cons_y {p in P: p in (1,number_of_steps)}:
 	sum {(i,j) in A} (y[i,j,p] + y[i,j,p+1]) <=1;
 
 subject to limit_c {p in P}:
