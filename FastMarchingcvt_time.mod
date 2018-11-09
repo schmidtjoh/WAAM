@@ -4,7 +4,6 @@ set V;
 set W within {V,V};
 set WW = {i1 in V, i2 in V: (i1,i2) in W || (i2,i1) in W};
 
-
 # PARAMETERS
 
 param X {V};
@@ -18,79 +17,100 @@ param v_m; # speed of welding head when moving without welding
 param delta_t; #length of one timestep
 
 check: v_w >=0;
+check: v_m >=0;
 check: kappa_w in [0,1];
 check: kappa_e in [0,1];
-
-# GENERATING MISSING DATA
-
-set A = {i1 in V, i2 in V: i1!=i2}; 
-param dist{(i,j) in A} = ceil(sqrt((X[i]-X[j])**2+(Y[i]-Y[j])**2)*100)/100;
-#param dt_A{(i,j) in A} = floor((dist[i,j]/v_m)/delta_t);
-param dt_W{(i,j) in W} = floor((l[i,j]/v_w)/delta_t);
-param dt_WW{(i,j) in WW} = if (i,j) in W then dt_W[i,j] else dt_W[j,i];
 
 # NODE DEGREE
 
 set INCIDENCE {v in V} = {(i,j) in W: i==v || j==v};
 param degree {v in V} = card(INCIDENCE[v]);
 
+#WORKTIME
+
+set A = {i1 in V, i2 in V: i1!=i2}; 
+param dist{(i,j) in A} = ceil(sqrt((X[i]-X[j])**2+(Y[i]-Y[j])**2)*100)/100;
+#param dt_A{(i,j) in A} = floor((dist[i,j]/v_m)/delta_t);
+param dt_W{(i,j) in W} = ceil((l[i,j]/v_w)/delta_t); #eventuell floor ?
+param dt_WW{(i,j) in WW} = if (i,j) in W then dt_W[i,j] else dt_W[j,i];
+
+#NEEDED TIME
+
 param number_of_odd_nodes = card({v in V: degree[v] mod 2 == 1});
-param number_of_steps = number_of_odd_nodes / 2 + card(W) -1;
+param number_of_steps = (number_of_odd_nodes / 2 -1) * 0 + sum {(i,j) in W} dt_W[i,j];
 
 #INDEX SETS TIME
 
 set P={1..number_of_steps};
 set P0= P union {0};
 
+# GENERATING MISSING DATA
+
+set WW_Exp = {i in V, pi in P, j in V, pj in P: (i,j) in WW && pj = pi+dt_WW[i,j]};
+set A_Exp = {i in V, pi in P, j in V, pj in P:(i,j) in A && pj = pi};
+
+set T_i = setof {(i,ti,j,tj) in WW_Exp} ti;
+
 #VARIABLES
 
-var x {(i,j) in WW, p in P} binary;
-var y {(i,j) in A, p in P} binary;
+var x {(i,ti,j,tj) in WW_Exp} binary;
+var y {(i,ti,j,tj) in A_Exp} binary;
+var prod_temp {(i,ti,j,tj) in WW_Exp} >=0;
+
 
 var temp {i in V, p in P0} in [0,phi_w];
 var maxtemp in [0,phi_w];
 
 #OBJECTIVE
 
-minimize time: sum{(i,j) in A, p in P} dist[i,j]*y[i,j,p]+maxtemp;# sum {i in V, p in P} temp[i,p];
+minimize time: sum{(i,ti,j,tj) in A_Exp} dist[i,j]*y[i,ti,j,tj]+maxtemp;# sum {i in V, p in P} temp[i,p];
 
 #CONSTRAINTS
 
 subject to start_somewhere:
-	sum{(i,j) in WW} x[i,j,1] == 1;
+	sum{(i,1,j,tj) in WW_Exp} x[i,1,j,tj] == 1;
 
 subject to end_somewhere:
-	sum{(i,j) in WW} x[i,j,number_of_steps-dt_WW[i,j]] == 1;
+	sum{(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps] == 1;
 
 subject to limit_y:
-	sum {(i,j) in A, p in P} y[i,j,p] == number_of_odd_nodes / 2 - 1;
+	sum {(i,ti,j,tj) in A_Exp} y[i,ti,j,tj] == number_of_odd_nodes / 2 - 1;
 
 subject to weld {(i,j) in W}:
-	sum {p in P} (x[i,j,p]+x[j,i,p]) == 1;
+	sum {(i,ti,j,tj) in WW_Exp} x[i,ti,j,tj]+sum {(j,tj,i,ti) in WW_Exp} x[j,tj,i,ti] == 1;
 
-subject to unique {p in P: p in (1,number_of_steps)}: 
-	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] == 1;
-	
+subject to unique {p in T_i: p in (1,number_of_steps)}: 
+	sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p] <= 1;
+
 subject to path_cont {j in V, p in P: p < number_of_steps}:
-	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] <= sum {(j,k) in WW} x[j,k,p+dt_WW[i,j]] + sum {(j,k) in A} y[j,k,p+1];
+	sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p] == sum {(j,p,k,tk) in WW_Exp} x[j,p,k,tk] + sum {(j,p,k,p) in A_Exp} y[j,p+1,k,p+1];
 
-subject to no_cons_y {(k,m) in A, p in P: p in (1,number_of_steps)}:
-	sum {(i,j) in A} y[i,j,p] + sum {(i,j) in A} y[i,j,p+1] <=1;
+subject to no_cons_y {p in P: p in (1,number_of_steps)}:
+	sum {(i,p,j,p) in A_Exp} (y[i,p,j,p] + y[i,p+1,j,p+1]) <=1;
+
+subject to prod_constr1 {(i,ti,j,tj) in WW_Exp}:
+	prod_temp[i,ti,j,tj] <= phi_w * x[i,ti,j,tj];
+
+subject to prod_constr2 {(i,ti,j,tj) in WW_Exp}:
+	prod_temp[i,ti,j,tj] <= temp[j,tj-ti];
+	
+subject to prod_constr3 {(i,ti,j,tj) in WW_Exp}:
+	prod_temp[i,ti,j,tj] >= temp[j,tj-ti] - phi_w * (1 - x[i,ti,j,tj]);
 
 subject to start_temp {i in V}:
-	temp[i,0] == kappa_w * phi_w * sum {(i,j) in WW} x[i,j,1];
+	temp[i,0] == kappa_w * phi_w * sum {(i,1,j,tj) in WW_Exp} x[i,1,j,tj];
 
 subject to compute_temp1_lb {j in V, p in P}:
-	temp[j,p] >= (1-kappa_w)*kappa_e*temp[j,p-1] + kappa_w * phi_w - phi_w * (1-(sum {(i,j) in WW} sum {k in 1..dt_WW[i,j]} x[i,j,p+k] + sum {(i,j) in A} y[i,j,p]));
+	temp[j,p] >= sum {(i,ti,j,p) in WW_Exp} (1-kappa_w)*(kappa_e**(p-ti-1))*prod_temp[i,ti,j,p] + kappa_w * phi_w - phi_w * (1-(sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
 subject to compute_temp1_ub {j in V, p in P}:
-	temp[j,p] <= (1-kappa_w)*kappa_e*temp[j,p-1] + kappa_w * phi_w + phi_w * (1-(sum {(i,j) in WW} sum{k in 1..dt_WW[i,j]}x[i,j,p+k] + sum {(i,j) in A} y[i,j,p]));
+	temp[j,p] <= sum {(i,ti,j,p) in WW_Exp} (1-kappa_w)*(kappa_e**(p-ti-1))*prod_temp[i,ti,j,p] + kappa_w * phi_w + phi_w * (1-(sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
 subject to compute_temp2_lb {j in V, p in P}:
-	temp[j,p] >= (kappa_e**delta_t)*temp[j,p-1] - phi_w * (sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A}  y[i,j,p]);	
+	temp[j,p] >= sum {(i,ti,j,p) in WW_Exp} (kappa_e**(p-ti))*prod_temp[i,ti,j,p] - phi_w * (sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);	
 
 subject to compute_temp2_ub {j in V, p in P}:
-	temp[j,p] <= (kappa_e**delta_t)*temp[j,p-1] + phi_w * (sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p]);	
+	temp[j,p] <= sum {(i,ti,j,p) in WW_Exp} (kappa_e**(p-ti))*prod_temp[i,ti,j,p] + phi_w * (sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);
 
 subject to compute_maxtemp {i in V, p in P0}:
 	temp[i,p] <= maxtemp;		 	
