@@ -37,7 +37,7 @@ param dt_WW{(i,j) in WW} = if (i,j) in W then dt_W[i,j] else dt_W[j,i];
 #NEEDED TIME
 
 param number_of_odd_nodes = card({v in V: degree[v] mod 2 == 1});
-param number_of_steps = (number_of_odd_nodes / 2 -1) * 0 + sum {(i,j) in W} dt_W[i,j];
+param number_of_steps = (number_of_odd_nodes / 2 -1) * 0 +1+ sum {(i,j) in W} dt_W[i,j];
 
 #INDEX SETS TIME
 
@@ -58,7 +58,7 @@ var y {(i,ti,j,tj) in A_Exp} binary;
 var prod_temp {(i,ti,j,tj) in WW_Exp} >=0;
 
 
-var temp {i in V, p in P0} in [0,phi_w];
+var temp {i in V, p in P} in [0,phi_w];
 var maxtemp in [0,phi_w];
 
 #OBJECTIVE
@@ -79,43 +79,40 @@ subject to limit_y:
 subject to weld {(i,j) in W}:
 	sum {(i,ti,j,tj) in WW_Exp} x[i,ti,j,tj]+sum {(j,tj,i,ti) in WW_Exp} x[j,tj,i,ti] == 1;
 
-subject to unique {p in T_i: p in (1,number_of_steps)}: 
-	sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p] <= 1;
+#subject to unique {p in T_i: p in (1,number_of_steps)}: 
+#	sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p] <= 1;
 
-subject to path_cont {j in V, p in P: p < number_of_steps}:
-	sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p] == sum {(j,p,k,tk) in WW_Exp} x[j,p,k,tk] + sum {(j,p,k,p) in A_Exp} y[j,p+1,k,p+1];
+subject to path_cont {j in V, p in P:1 < p < number_of_steps}:
+	sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]
+	 == sum {(j,p,k,tk) in WW_Exp} x[j,p,k,tk] + sum {(j,p,k,p) in A_Exp} y[j,p,k,p];
 
 subject to no_cons_y {p in P: p in (1,number_of_steps)}:
-	sum {(i,p,j,p) in A_Exp} (y[i,p,j,p] + y[i,p+1,j,p+1]) <=1;
+	sum {(i,p,j,p) in A_Exp} y[i,p,j,p] <=1;
 
 subject to prod_constr1 {(i,ti,j,tj) in WW_Exp}:
-	prod_temp[i,ti,j,tj] <= phi_w * x[i,ti,j,tj];
+	prod_temp[i,ti,j,tj] <= phi_w * (x[i,ti,j,tj]+sum {(k,tk,j,tj) in A_Exp} y[k,tk,j,tj]);
 
 subject to prod_constr2 {(i,ti,j,tj) in WW_Exp}:
-	prod_temp[i,ti,j,tj] <= temp[j,tj-ti];
+	prod_temp[i,ti,j,tj] <= temp[j,tj-1];
 	
 subject to prod_constr3 {(i,ti,j,tj) in WW_Exp}:
-	prod_temp[i,ti,j,tj] >= temp[j,tj-ti] - phi_w * (1 - x[i,ti,j,tj]);
+	prod_temp[i,ti,j,tj] >= temp[j,tj-1] - phi_w * (1 - (x[i,ti,j,tj]+sum {(k,tk,j,tj) in A_Exp} y[k,tk,j,tj]));
 
 subject to start_temp {i in V}:
-	temp[i,0] == kappa_w * phi_w * sum {(i,1,j,tj) in WW_Exp} x[i,1,j,tj];
+	temp[i,1] == kappa_w * phi_w * sum {(i,1,j,tj) in WW_Exp} x[i,1,j,tj];
+	
+subject to compute_temp1_lb {j in V, p in P: p>1}:
+	temp[j,p] >= sum {(i,ti,j,p) in WW_Exp} (1-kappa_w)*kappa_e*prod_temp[i,ti,j,p] + kappa_w * phi_w - phi_w * (1-(sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
-subject to compute_temp1_lb {j in V, p in P}:
-	temp[j,p] >= sum {(i,ti,j,p) in WW_Exp} (1-kappa_w)*(kappa_e**(p-ti-1))*prod_temp[i,ti,j,p] + kappa_w * phi_w - phi_w * (1-(sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
+subject to compute_temp1_ub {j in V, p in P: p>1}:
+	temp[j,p] <= sum {(i,ti,j,p) in WW_Exp} (1-kappa_w)*kappa_e*prod_temp[i,ti,j,p] + kappa_w * phi_w + phi_w * (1-(sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
-subject to compute_temp1_ub {j in V, p in P}:
-	temp[j,p] <= sum {(i,ti,j,p) in WW_Exp} (1-kappa_w)*(kappa_e**(p-ti-1))*prod_temp[i,ti,j,p] + kappa_w * phi_w + phi_w * (1-(sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
+subject to compute_temp2_lb {j in V, p in P:p >1}:
+	temp[j,p] >= kappa_e*temp[j,p-1] - phi_w * (sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);	
 
-subject to compute_temp2_lb {j in V, p in P}:
-	temp[j,p] >= sum {(i,ti,j,p) in WW_Exp} (kappa_e**(p-ti))*prod_temp[i,ti,j,p] - phi_w * (sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);	
+subject to compute_temp2_ub {j in V, p in P:p>1}:
+	temp[j,p] <= kappa_e*temp[j,p-1] + phi_w * (sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);
 
-subject to compute_temp2_ub {j in V, p in P}:
-	temp[j,p] <= sum {(i,ti,j,p) in WW_Exp} (kappa_e**(p-ti))*prod_temp[i,ti,j,p] + phi_w * (sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);
-
-subject to compute_maxtemp {i in V, p in P0}:
+subject to compute_maxtemp {i in V, p in P}:
 	temp[i,p] <= maxtemp;		 	
-	
-	
-	
-	
-	
+		
