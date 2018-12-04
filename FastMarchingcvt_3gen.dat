@@ -1,4 +1,3 @@
-
 param: V: X Y := #define set V and parameters X, Y
 1 1 0.8538
 2 1 0
@@ -10,16 +9,16 @@ param: V: X Y := #define set V and parameters X, Y
 8 1 1;
 
 set W :=
-(1,2)
-(2,3)
-(3,4)
-(1,4)
-(4,5)
-(5,6)
-(3,6)
-(5,7)
-(7,8)
-(1,8);
+1 2 0.853768
+2 3 0.628986
+3 4 0.576682
+1 4 0.523976
+4 5 0.647914
+5 6 0.818466
+3 6 0.371014
+5 7 0.181534
+7 8 1.000000
+1 8 0.146232;
 
 param phi_w := 1800; # maximal temperature
 param kappa_w := 0.5; # coefficient for blending heat from laser (kappa_w) and existing node heat (1-kappa_w), (>=0 <=1)
