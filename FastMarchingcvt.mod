@@ -29,13 +29,6 @@ param degree {v in V} = card(INCIDENCE[v]);
 param number_of_odd_nodes = card({v in V: degree[v] mod 2 == 1});
 param number_of_steps = number_of_odd_nodes / 2 + card(W) -1;
 
-#display card(A);
-#display card(W);
-#display INCIDENCE;
-#display degree;
-#display number_of_odd_nodes;
-#display number_of_steps;
-
 set P={1..number_of_steps};
 set P0= P union {0};
 
