@@ -26,7 +26,7 @@ def insert_node (zeile, dt):
     
 
 file = '/Users/jschmidt/Documents/Forschung/Modell_AMPL/FastMarchingcvt_grid.dat';
-dt = 0.4;
+dt = 0.2;
 edges = [];
 nodes = [];
 card_V = 14;
