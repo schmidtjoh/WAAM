@@ -1,0 +1,66 @@
+param: V: X Y := #define set V and parameters X, Y
+1 0.29 0.5
+2 0 0.525
+3 0 1
+4 0.5250 1
+5 0.3585 0.3555
+6 0.5115 0.2995
+7 1 0.5675
+8 1 1
+9 0.23 0.225
+10 0 0.25
+11 0 0
+12 0.2625 0
+13 1 0
+14 0.545 0;
+
+set V_added := zw_121 zw_231 zw_232 zw_341 zw_342 zw_141 zw_142 zw_671 zw_672 zw_781 zw_782 zw_481 zw_482 zw_9101 zw_10111 zw_11121 zw_9121 zw_7131 zw_7132 zw_13141 zw_13142 zw_6141 zw_2101 zw_12141 ;
+
+set W :=
+1 zw_121
+zw_121 2
+2 zw_231
+zw_231 zw_232
+zw_232 3
+3 zw_341
+zw_341 zw_342
+zw_342 4
+1 zw_141
+zw_141 zw_142
+zw_142 4
+1 5
+5 6
+6 zw_671
+zw_671 zw_672
+zw_672 7
+7 zw_781
+zw_781 zw_782
+zw_782 8
+4 zw_481
+zw_481 zw_482
+zw_482 8
+9 zw_9101
+zw_9101 10
+10 zw_10111
+zw_10111 11
+11 zw_11121
+zw_11121 12
+9 zw_9121
+zw_9121 12
+7 zw_7131
+zw_7131 zw_7132
+zw_7132 13
+13 zw_13141
+zw_13141 zw_13142
+zw_13142 14
+6 zw_6141
+zw_6141 14
+5 9
+2 zw_2101
+zw_2101 10
+12 zw_12141
+zw_12141 14;
+
+param phi_w := 1800; # maximal temperature
+param kappa_w := 0.5; # coefficient for blending heat from laser (kappa_w) and existing node heat (1-kappa_w), (>=0 <=1)
+param kappa_e := 0.95; # decay of temperature in node per time step (>=0 <=1) 

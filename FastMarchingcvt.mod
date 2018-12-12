@@ -1,16 +1,13 @@
 # SETS
-
-set V;
-set V_added;
-set V_ext = V union V_added;
+set V_ext;
 set W within {V_ext,V_ext};
 set WW = {i1 in V_ext, i2 in V_ext: (i1,i2) in W || (i2,i1) in W};
 
 
 # PARAMETERS
-
-param X {V};
-param Y {V};
+param a{V_ext};
+param X {V_ext};
+param Y {V_ext};
 param phi_w; # maximal temperature
 param kappa_w; # coefficient for blending heat from laser (kappa_w) and existing node heat (1-kappa_w), (>=0 <=1)
 param kappa_e; # decay of temperature in node per time step (>=0 <=1)
@@ -20,6 +17,8 @@ check: kappa_e in [0,1];
 
 # GENERATING MISSING DATA
 
+set V = {i in V_ext: a[i]<0.5};
+set V_added = {i in V_ext: a[i]>0.5};
 set A = {i1 in V, i2 in V: i1!=i2}; 
 param dist{(i,j) in A} = ceil(sqrt((X[i]-X[j])**2+(Y[i]-Y[j])**2)*100)/100;
 
@@ -29,7 +28,7 @@ set INCIDENCE {v in V} = {(i,j) in W: i==v || j==v};
 param degree {v in V} = card(INCIDENCE[v]);
 
 param number_of_odd_nodes = card({v in V: degree[v] mod 2 == 1});
-param number_of_steps = number_of_odd_nodes / 2 + card(W) -1;
+param number_of_steps = (number_of_odd_nodes / 2 -1) * 0 + card(W);
 
 set P={1..number_of_steps};
 set P0= P union {0};
@@ -58,13 +57,16 @@ subject to weld {(i,j) in W}:
 	sum {p in P} (x[i,j,p]+x[j,i,p]) == 1;
 
 subject to unique {p in P: p in (1,number_of_steps)}: 
-	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] == 1;
+	sum {(i,j) in WW} x[i,j,p]  == 1;
+
+subject to limit_y:
+	sum {(i,j) in A, p in P} y[i,j,p] == number_of_odd_nodes / 2 -1;
 	
 subject to path_cont {j in V_ext, p in P: p < number_of_steps}:
-	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] == sum {(j,k) in WW} x[j,k,p+1] + sum {(j,k) in A} y[j,k,p+1];
+	sum {(i,j) in WW} x[i,j,p] + sum {(i,j) in A} y[i,j,p] == sum {(j,k) in WW} x[j,k,p+1] + sum {(j,k) in A} y[j,k,p];
 
 subject to no_cons_y {p in P: p in (1,number_of_steps)}:
-	sum {(i,j) in A} y[i,j,p] + sum {(i,j) in A} y[i,j,p+1] <=1;
+	sum {(i,j) in A} y[i,j,p] <=1;
 
 subject to start_temp {i in V_ext}:
 	temp[i,0] == kappa_w * phi_w * sum {(i,j) in WW} x[i,j,1];
