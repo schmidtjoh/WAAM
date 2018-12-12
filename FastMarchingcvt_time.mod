@@ -37,7 +37,7 @@ param dt_WW{(i,j) in WW} = if (i,j) in W then dt_W[i,j] else dt_W[j,i];
 #NEEDED TIME
 
 param number_of_odd_nodes = card({v in V: degree[v] mod 2 == 1});
-param number_of_steps = (number_of_odd_nodes / 2 -1) * 0 +1+ sum {(i,j) in W} dt_W[i,j];
+param number_of_steps = (number_of_odd_nodes / 2 -1) * 0 + sum {(i,j) in W} dt_W[i,j];
 
 #INDEX SETS TIME
 
@@ -46,7 +46,7 @@ set P0= P union {0};
 
 # GENERATING MISSING DATA
 
-set WW_Exp = {i in V, pi in P, j in V, pj in P: (i,j) in WW && pj = pi+dt_WW[i,j]};
+set WW_Exp = {i in V, pi in P0, j in V, pj in P: (i,j) in WW && pj = pi+dt_WW[i,j]};
 set A_Exp = {i in V, pi in P, j in V, pj in P:(i,j) in A && pj = pi};
 
 
@@ -56,7 +56,7 @@ var x {(i,ti,j,tj) in WW_Exp} binary;
 var y {(i,ti,j,tj) in A_Exp} binary;
 
 
-var temp {i in V, p in P} in [0,phi_w];
+var temp {i in V, p in P0} in [0,phi_w];
 var maxtemp in [0,phi_w];
 
 #OBJECTIVE
@@ -66,7 +66,7 @@ minimize time: sum{(i,ti,j,tj) in A_Exp} dist[i,j]*y[i,ti,j,tj]+maxtemp;# sum {i
 #CONSTRAINTS
 
 subject to start_somewhere:
-	sum{(i,1,j,tj) in WW_Exp} x[i,1,j,tj] == 1;
+	sum{(i,0,j,tj) in WW_Exp} x[i,0,j,tj] == 1;
 
 subject to end_somewhere:
 	sum{(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps] == 1;
@@ -77,7 +77,7 @@ subject to limit_y:
 subject to weld {(i,j) in W}:
 	sum {(i,ti,j,tj) in WW_Exp} x[i,ti,j,tj]+sum {(j,tj,i,ti) in WW_Exp} x[j,tj,i,ti] == 1;
 
-subject to path_cont {j in V, p in P:1 < p < number_of_steps}:
+subject to path_cont {j in V, p in P: p < number_of_steps}:
 	sum {(i,ti,j,p) in WW_Exp} x[i,ti,j,p] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]
 	 == sum {(j,p,k,tk) in WW_Exp} x[j,p,k,tk] + sum {(j,p,k,p) in A_Exp} y[j,p,k,p];
 
@@ -85,12 +85,12 @@ subject to no_cons_y {p in P: p in (1,number_of_steps)}:
 	sum {(i,p,j,p) in A_Exp} y[i,p,j,p] <=1;
 
 subject to start_temp {i in V}:
-	temp[i,1] == kappa_w * phi_w * sum {(i,1,j,tj) in WW_Exp} x[i,1,j,tj];
+	temp[i,0] == kappa_w * phi_w * sum {(i,0,j,tj) in WW_Exp} x[i,0,j,tj];
 	
-subject to compute_temp1_lb {i in V, p in P: 1<p<number_of_steps}:
+subject to compute_temp1_lb {i in V, p in P: p<number_of_steps}:
 	temp[i,p] >= (1-kappa_w)*kappa_e*temp[i,p-1] + kappa_w * phi_w - phi_w * (1-(sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
-subject to compute_temp1_ub {i in V, p in P: 1<p<number_of_steps}:
+subject to compute_temp1_ub {i in V, p in P: p<number_of_steps}:
 	temp[i,p] <= (1-kappa_w)*kappa_e*temp[i,p-1] + kappa_w * phi_w + phi_w * (1-(sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
 subject to compute_temp1_end_lb {j in V}:
@@ -99,10 +99,10 @@ subject to compute_temp1_end_lb {j in V}:
 subject to compute_temp1_end_ub {j in V}:
 	temp[j,number_of_steps] <= (1-kappa_w)*kappa_e*temp[j,number_of_steps-1] + kappa_w * phi_w + phi_w * (1-sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
 
-subject to compute_temp2_lb {i in V, p in P:1<p<number_of_steps}:
+subject to compute_temp2_lb {i in V, p in P:p<number_of_steps}:
 	temp[i,p] >= kappa_e*temp[i,p-1] - phi_w * (sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);	
 
-subject to compute_temp2_ub {i in V, p in P:1<p<number_of_steps}:
+subject to compute_temp2_ub {i in V, p in P:p<number_of_steps}:
 	temp[i,p] <= kappa_e*temp[i,p-1] + phi_w * (sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);
 
 subject to compute_temp2_end_lb {j in V}:
@@ -111,6 +111,6 @@ subject to compute_temp2_end_lb {j in V}:
 subject to compute_temp2_end_ub {j in V}:
 	temp[j,number_of_steps] <= kappa_e*temp[j,number_of_steps-1] + phi_w * (sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);
 
-subject to compute_maxtemp {i in V, p in P}:
+subject to compute_maxtemp {i in V, p in P0}:
 	temp[i,p] <= maxtemp;		 	
 		
