@@ -1,0 +1,15 @@
+option print_precision 6;
+option log_file "data_grid" & dt & ".txt";
+
+print maxtemp;
+print card(V);
+print number_of_steps;
+print card(W)+number_of_odd_nodes/2-1;
+print {v in V_ext} X[v];
+print {v in V_ext} Y[v];
+print {(i,j) in WW, p in P: x[i,j,p]>0.5}: i,j,p,0;
+print {(i,j) in A, p in P: y[i,j,p]>0.5}: i,j,p,1;
+for {p in P0}{ print {i in V_ext} temp[i,p];}
+
+option log_file "";
+close;
