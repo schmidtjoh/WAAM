@@ -19,13 +19,13 @@ def generate_pos (data,i,j,count,n):
 def insert_node (zeile, data, dt):
     n = math.floor(float(zeile[2].replace(";",""))/dt);
     if n > 0:
-        array = [zeile[0]+' zw_'+zeile[0]+zeile[1]+str(1)];
-        added_nodes.append('zw_'+zeile[0]+zeile[1]+str(1)+' '+generate_pos(data,int(zeile[0]),int(zeile[1]),1,n+1));
+        array = [zeile[0]+' '+str(card_V+len(added_nodes)+1)];
+        added_nodes.append(str(card_V+len(added_nodes)+1)+' '+generate_pos(data,int(zeile[0]),int(zeile[1]),1,n));
         for i in range(2,n+1):
-            array.append('zw_'+zeile[0]+zeile[1]+str(i-1)+' zw_'+zeile[0]+zeile[1]+str(i));
-            if ('zw_'+zeile[0]+zeile[1]+str(i)) not in added_nodes:
-                added_nodes.append('zw_'+zeile[0]+zeile[1]+str(i)+' '+generate_pos(data,int(zeile[0]),int(zeile[1]),i,n+1));
-        array.append('zw_'+zeile[0]+zeile[1]+str(n)+' '+str(zeile[1]));
+            array.append(str(card_V+len(added_nodes))+' '+str(card_V+len(added_nodes)+1));
+            if str(card_V+len(added_nodes)+1) not in added_nodes:
+                added_nodes.append(str(card_V+len(added_nodes)+1)+' '+generate_pos(data,int(zeile[0]),int(zeile[1]),i,n));
+        array.append(str(card_V+len(added_nodes))+' '+str(zeile[1]));
         return array;
     else: 
         return [zeile[0]+' '+zeile[1]];
@@ -34,7 +34,7 @@ def insert_node (zeile, data, dt):
     
 
 file = '/Users/jschmidt/Documents/Forschung/Modell_AMPL/FastMarchingcvt_time.dat';
-dt = 1;
+dt = 0.5;
 edges = [];
 added_nodes = [];
 card_V = 14;
@@ -46,15 +46,17 @@ for s in obj_in[card_V+3:card_V+card_W+3]:
     edges.extend(insert_node(s.split(" "),obj_in[1:card_V+1],dt));
     
     
-obj_out = open('/Users/jschmidt/Documents/Forschung/Modell_AMPL/Test.dat',"w");
+obj_out = open('/Users/jschmidt/Documents/Forschung/Modell_AMPL/FastMarchingcvt_extnodes'+str(dt)+'.dat',"w");
 if len(added_nodes) > 0:
     obj_out.write("param: V_ext: X Y a :=\n"+"".join(obj_in[l].replace(";","").replace("\n"," 0 \n") for l in range(1,card_V+1))+\
               "".join(str(added_nodes[v])+' 1 \n' for v in range(len(added_nodes)-1))+\
               "".join(str(added_nodes[len(added_nodes)-1]+' 1;\n\n'))+\
-              obj_in[card_V+2]+"".join(str(edges[i])+'\n' for i in range(len(edges)-1))+\
-              "".join(str(edges[len(edges)-1])+';\n'+"".join(obj_in[card_V+card_W+3:])));
+              "set W :=\n"+"".join(str(edges[i])+'\n' for i in range(len(edges)-1))+\
+              "".join(str(edges[len(edges)-1])+';\n'+"".join(obj_in[card_V+card_W+3:]))+\
+              "".join("param dt := "+str(dt)+"; #for data-filename only"));
 else:
     obj_out.write("param: V_ext: X Y a :=\n"+"".join(obj_in[l].replace(";","").replace("\n"," 0 \n") for l in range(1,card_V))+\
               "".join(obj_in[card_V].replace(";"," 0;"))+"\n"+"set W :=\n"+"".join(str(edges[i])+'\n' for i in range(len(edges)-1))+\
-              "".join(str(edges[len(edges)-1])+';\n'+"".join(obj_in[card_V+card_W+3:])));
+              "".join(str(edges[len(edges)-1])+';\n')+"".join(obj_in[card_V+card_W+3:])+\
+              "".join("param dt := "+str(dt)+"; #for data-filename only"));
                   

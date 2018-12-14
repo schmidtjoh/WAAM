@@ -11,6 +11,8 @@ param Y {V_ext};
 param phi_w; # maximal temperature
 param kappa_w; # coefficient for blending heat from laser (kappa_w) and existing node heat (1-kappa_w), (>=0 <=1)
 param kappa_e; # decay of temperature in node per time step (>=0 <=1)
+param dt; # for produced data-filename only
+
 
 check: kappa_w in [0,1];
 check: kappa_e in [0,1];
@@ -31,7 +33,7 @@ param number_of_odd_nodes = card({v in V: degree[v] mod 2 == 1});
 param number_of_steps = (number_of_odd_nodes / 2 -1) * 0 + card(W);
 
 set P={1..number_of_steps};
-set P0= P union {0};
+set P0= {0} union P;
 
 #VARIABLES
 
