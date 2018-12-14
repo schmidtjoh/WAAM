@@ -42,7 +42,7 @@ param number_of_steps = (number_of_odd_nodes / 2 -1) * 0 + sum {(i,j) in W} dt_W
 #INDEX SETS TIME
 
 set P={1..number_of_steps};
-set P0= P union {0};
+set P0= {0} union P;
 
 # GENERATING MISSING DATA
 
