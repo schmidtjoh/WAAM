@@ -7,8 +7,12 @@ n = size(x_v,2);
 y_v = str2num(fgetl(file));
 A = zeros(moves,5);
 T_v = zeros(timesteps+1,n);
+edges = 0;
 for i = 1:moves
     A(i,:) = str2num(fgetl(file));
+    if A(i,5) < 0.5
+        edges = edges +1;
+    end
 end
 for i = 1:(timesteps+1)
     T_v(i,:) = str2num(fgetl(file));
@@ -55,7 +59,9 @@ for k = 1: (timesteps+1)
      end
 
     G=digraph(W(:,1)',W(:,3)');
-    BG = graph(adjacency (G)+adjacency(G)');
+    B = sortrows(A(1:edges,1:3));
+    
+    BG = graph(B(:,1),B(:,3));
     
     r=plot(BG,'-k','XData',x_v,'YData',y_v); 
     
