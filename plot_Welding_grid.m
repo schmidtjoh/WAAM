@@ -7,11 +7,11 @@ x_v = str2num(fgetl(file));
 n = size(x_v,2);
 y_v = str2num(fgetl(file));
 A = zeros(moves,4);
-T_v = zeros(steps+1,n);
+T_v = zeros(timesteps+1,n);
 for i = 1:moves
     A(i,:) = str2num(fgetl(file));
 end
-for i = 1:(steps+1)
+for i = 1:(timesteps+1)
     T_v(i,:) = str2num(fgetl(file));
 end
 fclose(file);
@@ -55,7 +55,12 @@ for k = 1: (timesteps+1)
      end
 
     G=digraph(W(:,1)',W(:,2)');
-
+    B = sortrows(A(1:timesteps,1:2));
+    
+    BG = graph(B(:,1),B(:,2));
+    r=plot(BG,'-k','XData',x_v,'YData',y_v); 
+    
+    hold on
     p=plot(G,'XData',x_v,'YData',y_v);
     p.EdgeCData = T_e;
     p.EdgeColor = 'flat';
@@ -66,10 +71,10 @@ for k = 1: (timesteps+1)
     p.NodeColor = 'flat';
     p.NodeLabel = nodelabel;
     colormap hot;
-   caxis([0 maxtemp]);
+    caxis([0 maxtemp]);
     colorbar;
     view(2)
-
+    hold off
     frame = getframe(h);
     image = frame2im(frame);
     imind = image;
