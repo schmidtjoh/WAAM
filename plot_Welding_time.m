@@ -16,6 +16,7 @@ end
 fclose(file);
 
 W=sortrows(A,[1 3]);
+arrows = zeros(1,moves);
 style = cell(1, moves);
 edgelabel = cell(1, moves);
 nodelabel = cell(1,n);
@@ -54,7 +55,11 @@ for k = 1: (timesteps+1)
      end
 
     G=digraph(W(:,1)',W(:,3)');
-
+    BG = graph(adjacency (G)+adjacency(G)');
+    
+    r=plot(BG,'-k','XData',x_v,'YData',y_v); 
+    
+    hold on
     p=plot(G,'XData',x_v,'YData',y_v);
     p.EdgeCData = T_e;
     p.EdgeColor = 'flat';
@@ -68,7 +73,8 @@ for k = 1: (timesteps+1)
    caxis([0 maxtemp]);
     colorbar;
     view(2)
-
+    hold off
+    
     frame = getframe(h);
     image = frame2im(frame);
     imind = image;
