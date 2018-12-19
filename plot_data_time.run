@@ -1,0 +1,14 @@
+option print_precision 6;
+option log_file ("data_time" & delta_t & ".txt");
+
+print maxtemp;
+print number_of_steps;
+print card(W)+number_of_odd_nodes/2-1;
+print {v in V} X[v];
+print {v in V} Y[v];
+print {(i,ti,j,tj) in WW_Exp: x[i,ti,j,tj]>0.5}: i,ti,j,tj,0;
+print {(i,ti,j,tj) in A_Exp: y[i,ti,j,tj]>0.5}: i,ti,j,tj,1;
+for {p in P0}{ print {i in V} temp[i,p];}
+
+option log_file "";
+close;
