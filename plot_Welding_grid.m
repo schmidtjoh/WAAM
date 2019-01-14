@@ -1,4 +1,4 @@
-file = fopen('data_grid05.txt','r');
+file = fopen('data_grid0.25.txt','r');
 maxtemp = str2double(fgetl(file));
 nodes = str2double(fgetl(file));
 timesteps = str2double(fgetl(file));

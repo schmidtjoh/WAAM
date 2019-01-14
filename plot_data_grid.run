@@ -1,5 +1,5 @@
 option print_precision 6;
-option log_file "data_grid" & dt & ".txt";
+option log_file ("data_grid" & dt & ".txt");
 
 print maxtemp;
 print card(V);

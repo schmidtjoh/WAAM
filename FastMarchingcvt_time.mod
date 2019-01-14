@@ -15,6 +15,7 @@ param kappa_e; # decay of temperature in node per time step (>=0 <=1)
 param v_w; #speed of welding head when welding
 param v_m; # speed of welding head when moving without welding
 param delta_t; #length of one timestep
+param a;# thermal diffusity
 
 check: v_w >=0;
 check: v_m >=0;
@@ -87,29 +88,37 @@ subject to no_cons_y {p in P: p in (1,number_of_steps)}:
 subject to start_temp {i in V}:
 	temp[i,0] == kappa_w * phi_w * sum {(i,0,j,tj) in WW_Exp} x[i,0,j,tj];
 	
-subject to compute_temp1_lb {i in V, p in P: p<number_of_steps}:
-	temp[i,p] >= (1-kappa_w)*kappa_e*temp[i,p-1] + kappa_w * phi_w - phi_w * (1-(sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
+subject to compute_temp1_lb {i in V, p in P: p<number_of_steps}:#Idee Faktor: kappa_e*a*10**(-6)*dt/(l[j,k]**2)
+	temp[i,p] >= (1-kappa_w)*kappa_e*temp[i,p-1] + kappa_w * phi_w - sum {(i,p,j,tj) in WW_Exp} kappa_e*a*(temp[i,p-1]-temp[j,p-1]) 
+				- phi_w * (1-(sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
 subject to compute_temp1_ub {i in V, p in P: p<number_of_steps}:
-	temp[i,p] <= (1-kappa_w)*kappa_e*temp[i,p-1] + kappa_w * phi_w + phi_w * (1-(sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
+	temp[i,p] <= (1-kappa_w)*kappa_e*temp[i,p-1] + kappa_w * phi_w - sum {(i,p,j,tj) in WW_Exp} kappa_e*a*(temp[i,p-1]-temp[j,p-1])
+				+ phi_w * (1-(sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
 subject to compute_temp1_end_lb {j in V}:
-	temp[j,number_of_steps] >= (1-kappa_w)*kappa_e*temp[j,number_of_steps-1] + kappa_w * phi_w - phi_w * (1-sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
+	temp[j,number_of_steps] >= (1-kappa_w)*kappa_e*temp[j,number_of_steps-1] + kappa_w * phi_w - sum {(i,ti,j,number_of_steps) in WW_Exp} kappa_e*a*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
+								- phi_w * (1-sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
 
 subject to compute_temp1_end_ub {j in V}:
-	temp[j,number_of_steps] <= (1-kappa_w)*kappa_e*temp[j,number_of_steps-1] + kappa_w * phi_w + phi_w * (1-sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
+	temp[j,number_of_steps] <= (1-kappa_w)*kappa_e*temp[j,number_of_steps-1] + kappa_w * phi_w - sum {(i,ti,j,number_of_steps) in WW_Exp} kappa_e*a*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
+								+ phi_w * (1-sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
 
 subject to compute_temp2_lb {i in V, p in P:p<number_of_steps}:
-	temp[i,p] >= kappa_e*temp[i,p-1] - phi_w * (sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);	
+	temp[i,p] >= kappa_e*temp[i,p-1] - sum {(i,p,j,tj) in WW_Exp} kappa_e*a*(temp[i,p-1]-temp[j,p-1])
+				- phi_w * (sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);	
 
 subject to compute_temp2_ub {i in V, p in P:p<number_of_steps}:
-	temp[i,p] <= kappa_e*temp[i,p-1] + phi_w * (sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);
+	temp[i,p] <= kappa_e*temp[i,p-1] - sum {(i,p,j,tj) in WW_Exp} kappa_e*a*(temp[i,p-1]-temp[j,p-1])
+				+ phi_w * (sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);
 
 subject to compute_temp2_end_lb {j in V}:
-	temp[j,number_of_steps] >= kappa_e*temp[j,number_of_steps-1] - phi_w * (sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
+	temp[j,number_of_steps] >= kappa_e*temp[j,number_of_steps-1] - sum {(i,ti,j,number_of_steps) in WW_Exp} kappa_e*a*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
+								- phi_w * (sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
 
 subject to compute_temp2_end_ub {j in V}:
-	temp[j,number_of_steps] <= kappa_e*temp[j,number_of_steps-1] + phi_w * (sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);
+	temp[j,number_of_steps] <= kappa_e*temp[j,number_of_steps-1] - sum {(i,ti,j,number_of_steps) in WW_Exp} kappa_e*a*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
+								+ phi_w * (sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);
 
 subject to compute_maxtemp {i in V, p in P0}:
 	temp[i,p] <= maxtemp;		 	

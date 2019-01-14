@@ -22,4 +22,4 @@ set W :=
 
 param phi_w := 1800; # maximal temperature
 param kappa_w := 0.5; # coefficient for blending heat from laser (kappa_w) and existing node heat (1-kappa_w), (>=0 <=1)
-param kappa_e := 0.95; # decay of temperature in node per time step (>=0 <=1) 
+param kappa_e := 0.95; # decay of temperature in node per time step (>=0 <=1)

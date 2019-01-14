@@ -1,4 +1,4 @@
-file = fopen('data_time0.25.txt','r');
+file = fopen('data_time1.txt','r');
 maxtemp = str2double(fgetl(file));
 timesteps = str2double(fgetl(file));
 moves = str2double(fgetl(file));
