@@ -33,7 +33,7 @@ def insert_node (zeile, data, dt):
 
     
 
-file = '/Users/jschmidt/Documents/Forschung/Modell_AMPL/FastMarchingcvt_3gen.dat';
+file = '/Users/jschmidt/Documents/Forschung/WAAM/Modell_AMPL/FastMarchingcvt_3gen.dat';
 dt = 0.25;
 edges = [];
 added_nodes = [];

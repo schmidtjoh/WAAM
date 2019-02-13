@@ -1,4 +1,4 @@
-file = fopen('data_time1.txt','r');
+file = fopen('data_time110e-9.txt','r');
 maxtemp = str2double(fgetl(file));
 timesteps = str2double(fgetl(file));
 moves = str2double(fgetl(file));
@@ -15,7 +15,7 @@ for i = 1:moves
     end
 end
 for i = 1:(timesteps+1)
-    T_v(i,:) = str2num(fgetl(file));
+    T_v(i,:) = round(str2num(fgetl(file)),1);
 end
 fclose(file);
 
@@ -24,15 +24,17 @@ arrows = zeros(1,moves);
 style = cell(1, moves);
 edgelabel = cell(1, moves);
 nodelabel = cell(1,n);
+empty = cell(1,n);
 T_e = zeros( moves,1);
 
 for j=1:n
     nodelabel{j} = '';
+    empty{j} = '';
 end
 
 h = figure;
 axis tight;
-filename = 'Welding.gif';
+filename = 'Welding_radiation10e-9.gif';
 whitebg([0.5 0.5 0.5]);
 
 
@@ -48,15 +50,17 @@ for k = 1: (timesteps+1)
              style{i} = '-';
              edgelabel{i} = int2str(W(i,2));
          end
-     end
-
+ 
+    end
+    nodelabel = T_v(k,:);    
     for i = 1: moves
         if W(i,5)>0.5
             T_e(i)=0;
         else
             T_e(i)=(T_v(k,W(i,1))+T_v(k,W(i,3)))/2;
         end
-     end
+        
+    end
 
     G=digraph(W(:,1)',W(:,3)');
     B = sortrows(A(1:edges,1:3));
@@ -64,12 +68,13 @@ for k = 1: (timesteps+1)
     BG = graph(B(:,1),B(:,3));
     
     r=plot(BG,'-k','XData',x_v,'YData',y_v); 
-    
+    r.NodeLabel = empty;
     hold on
     p=plot(G,'XData',x_v,'YData',y_v);
     p.EdgeCData = T_e;
     p.EdgeColor = 'flat';
     p.LineStyle = style;
+    p.LineWidth = 2;
     p.EdgeLabel = edgelabel;
     p.MarkerSize = 6;
     p.NodeCData = T_v(k,:);

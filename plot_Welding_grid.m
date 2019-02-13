@@ -1,4 +1,4 @@
-file = fopen('data_grid0.25.txt','r');
+file = fopen('data_grid0.25_0.1.txt','r');
 maxtemp = str2double(fgetl(file));
 nodes = str2double(fgetl(file));
 timesteps = str2double(fgetl(file));
@@ -12,7 +12,7 @@ for i = 1:moves
     A(i,:) = str2num(fgetl(file));
 end
 for i = 1:(timesteps+1)
-    T_v(i,:) = str2num(fgetl(file));
+    T_v(i,:) = round(str2num(fgetl(file)),1);
 end
 fclose(file);
 
@@ -21,10 +21,12 @@ style = cell(1, moves);
 edgelabel = cell(1, moves);
 markersize = [6.*ones(1, nodes) 2.*ones(1,n-nodes)];
 nodelabel = cell(1,n);
+empty = cell(1,n);
 T_e = zeros( moves,1);
 
 for j=1:n
     nodelabel{j} = '';
+    empty{j} = '';
 end
 
 h = figure;
@@ -45,7 +47,7 @@ for k = 1: (timesteps+1)
              edgelabel{i} = int2str(W(i,3));
          end
      end
-
+    nodelabel = T_v(k,:); 
     for i = 1: moves
         if W(i,4)>0.5
             T_e(i)=0;
@@ -59,12 +61,14 @@ for k = 1: (timesteps+1)
     
     BG = graph(B(:,1),B(:,2));
     r=plot(BG,'-k','XData',x_v,'YData',y_v); 
+    r.NodeLabel = empty;
     
     hold on
     p=plot(G,'XData',x_v,'YData',y_v);
     p.EdgeCData = T_e;
     p.EdgeColor = 'flat';
     p.LineStyle = style;
+    p.LineWidth = 2;
     p.EdgeLabel = edgelabel;
     p.MarkerSize = markersize;
     p.NodeCData = T_v(k,:);

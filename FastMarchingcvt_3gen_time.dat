@@ -1,0 +1,60 @@
+param: V: X Y := #define set V and parameters X, Y
+1 1 0.8538
+2 1 0
+3 0.371 0
+4 0.5832 0.5362
+5 0 0.8185
+6 0 0
+7 0 1
+8 1 1;
+
+param: W : l := #define edges and length
+1 2 0.854
+2 3 0.629
+3 4 0.577
+1 4 0.524
+4 5 0.648
+5 6 0.818
+3 6 0.371
+5 7 0.182
+7 8 1
+1 8 0.146;
+
+param L: 1 	2	3	4	5	6	7	8 := # visibility matrix (radiation)	
+	1	0	1	1	1	1	0	1	1
+	2	1	0	1	1	0	0	0	0
+	3	1	1	0	1	1	1	0	0
+	4	1	1	1	0	1	1	1	1
+	5	1	0	1	1	0	1	1	1
+	6	0	0	1	1	1	0	0	0
+	7	1	0	0	1	1	0	0	1
+	8	1	0	0	1	1	0	1	0;
+
+param intervals := 6;
+param: bp slope :=
+	1 200 0.8e7
+	2 400 1.2e8
+	3 600 0.502e9
+	4 800 1.4e9
+	5 1000 2.9502e9
+	6 . 0.50318e10;
+
+# Hauptdiagonale ist Gesamtwinkel, Zeile jeweils die anteiligen Winkel
+param alpha:  1 		2		3		4		5		6		7		8 := 	
+		1	180		20.22 	21.55	34.10 	17.30 	. 		13.13 	73.71 
+		2	16.69	90		27.14	46.16	.		.		.		.
+		3	24.66	34.16	180		37.88	35.49	47.81	.		.
+		4	57.84	64.50	47.15	360		44.89	41.16	47.23	57.02
+		5	15.05	.		28.15	40.21	180		12.77	70.06	13.75
+		6	.		.		29.32	37.32	23.34	90		.		.
+		7	16.89	.		.		26.99	41.94	.		90		4.18	
+		8	34.34	.		.		31.06	19.42	.		5.18	90	;
+	
+param phi_w := 1800; # maximal temperature
+param kappa_w := 0.5; # coefficient for blending heat from laser (kappa_w) and existing node heat (1-kappa_w), (>=0 <=1)
+param kappa_e := 0.95; # decay of temperature in node per time step (>=0 <=1) 
+param v_w := 0.25; # speed of welding head when welding
+param v_m := 1; #speed of welding head when moving without welding
+param delta_t := 1; # length of one timestep
+param a := 0.1; # thermal diffusity
+param b := 0.5726e-8; # radiation parameter (eps*sigma)
