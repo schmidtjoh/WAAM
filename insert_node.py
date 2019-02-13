@@ -17,7 +17,10 @@ def generate_pos (data,i,j,count,n):
 
 
 def insert_node (zeile, data, dt):
-    n = math.floor(float(zeile[2].replace(";",""))/dt);
+    if (float(zeile[2].replace(";",""))/dt) % 1 != 0:
+        n = math.floor(float(zeile[2].replace(";",""))/dt);
+    else:
+        n = math.floor(float(zeile[2].replace(";",""))/dt)-1;
     if n > 0:
         array = [zeile[0]+' '+str(card_V+len(added_nodes)+1)];
         added_nodes.append(str(card_V+len(added_nodes)+1)+' '+generate_pos(data,int(zeile[0]),int(zeile[1]),1,n));
@@ -34,7 +37,7 @@ def insert_node (zeile, data, dt):
     
 
 file = '/Users/jschmidt/Documents/Forschung/WAAM/Modell_AMPL/FastMarchingcvt_3gen.dat';
-dt = 0.25;
+dt = 0.1;
 edges = [];
 added_nodes = [];
 card_V = 8;
@@ -46,19 +49,19 @@ for s in obj_in[card_V+3:card_V+card_W+3]:
     edges.extend(insert_node(s.split(" "),obj_in[1:card_V+1],dt));
     
     
-obj_out = open('/Users/jschmidt/Documents/Forschung/Modell_AMPL/FastMarchingcvt_extnodes'+str(dt)+'.dat',"w");
+obj_out = open('/Users/jschmidt/Documents/Forschung/WAAM/Modell_AMPL/FastMarchingcvt_extnodes'+str(dt)+'_test.dat',"w");
 if len(added_nodes) > 0:
     obj_out.write("param: V_ext: X Y z :=\n"+"".join(obj_in[l].replace(";","").replace("\n"," 0 \n") for l in range(1,card_V+1))+\
               "".join(str(added_nodes[v])+' 1 \n' for v in range(len(added_nodes)-1))+\
               "".join(str(added_nodes[len(added_nodes)-1]+' 1;\n\n'))+\
               "set W :=\n"+"".join(str(edges[i])+'\n' for i in range(len(edges)-1))+\
               "".join(str(edges[len(edges)-1])+';\n'+"".join(obj_in[card_V+card_W+3:]))+"\n"+\
-              "".join("param dt := "+str(dt)+"; #for data-filename only"))+\
-              "".join("param a := 0.1; # thermal diffusity");
+              "".join("param dt := "+str(dt)+"; #for data-filename only\n")+\
+              "param a := 0.1; # thermal diffusity");
 else:
     obj_out.write("param: V_ext: X Y z :=\n"+"".join(obj_in[l].replace(";","").replace("\n"," 0 \n") for l in range(1,card_V))+\
               "".join(obj_in[card_V].replace(";"," 0;"))+"\n"+"set W :=\n"+"".join(str(edges[i])+'\n' for i in range(len(edges)-1))+\
               "".join(str(edges[len(edges)-1])+';\n')+"".join(obj_in[card_V+card_W+3:])+"\n"+\
-              "".join("param dt := "+str(dt)+"; #for data-filename only"))+\
-              "".join("param a := 0.1; # thermal diffusity");
+              "".join("param dt := "+str(dt)+"; #for data-filename only\n")+\
+              "param a := 0.1; # thermal diffusity");
                   
