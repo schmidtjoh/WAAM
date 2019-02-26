@@ -1,5 +1,5 @@
 option print_precision 6;
-option log_file ("data_time" & delta_t & ".txt");
+option log_file ("data_time" & delta_t & "_rad.txt");
 
 print maxtemp;
 print number_of_steps;

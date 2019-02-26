@@ -20,16 +20,6 @@ param: W : l := #define edges and length
 7 8 1
 1 8 0.146;
 
-param L: 1 	2	3	4	5	6	7	8 := # visibility matrix (radiation)	
-	1	0	1	1	1	1	0	1	1
-	2	1	0	1	1	0	0	0	0
-	3	1	1	0	1	1	1	0	0
-	4	1	1	1	0	1	1	1	1
-	5	1	0	1	1	0	1	1	1
-	6	0	0	1	1	1	0	0	0
-	7	1	0	0	1	1	0	0	1
-	8	1	0	0	1	1	0	1	0;
-
 param intervals := 6;
 param: bp slope :=
 	1 200 0.8e7

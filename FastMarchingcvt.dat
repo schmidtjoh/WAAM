@@ -1,0 +1,55 @@
+param: V : X Y := #define set V and parameters X, Y
+1 0.29 0.5
+2 0 0.525
+3 0 1
+4 0.5250 1
+5 0.3585 0.3555
+6 0.5115 0.2995
+7 1 0.5675
+8 1 1
+9 0.23 0.225
+10 0 0.25
+11 0 0
+12 0.2625 0
+13 1 0
+14 0.545 0;
+
+param: W: l :=
+1 2 0.291076
+2 3 0.475
+3 4 0.525
+1 4 0.552472
+1 5 0.159914
+5 6 0.162926
+6 7 0.557186
+7 8 0.4325
+4 8 0.475
+9 10 0.231355
+10 11 0.25
+11 12 0.2625
+9 12 0.227335
+7 13 0.5675
+13 14 0.455
+6 14 0.301368
+5 9 0.183146
+2 10 0.275
+12 14 0.2825;
+
+param intervals := 6;
+param: bp slope :=
+	1 200 0.8e7
+	2 400 1.2e8
+	3 600 0.502e9
+	4 800 1.4e9
+	5 1000 2.9502e9
+	6 . 0.50318e10;
+
+
+param phi_w := 1800; # maximal temperature
+param kappa_w := 0.5; # coefficient for blending heat from laser (kappa_w) and existing node heat (1-kappa_w), (>=0 <=1)
+param kappa_e := 0.95; # decay of temperature in node per time step (>=0 <=1) 
+param v_w := 0.25; # speed of welding head when welding
+param v_m := 1; #speed of welding head when moving without welding
+param delta_t := 1; # length of one timestep
+param a := 0.1; # thermal diffusity
+param b := 0.5726e-8; # radiation parameter (eps*sigma)

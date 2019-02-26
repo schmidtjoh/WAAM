@@ -1,4 +1,4 @@
-file = fopen('data_time110e-9.txt','r');
+file = fopen('data_time1_rad.txt','r');
 maxtemp = str2double(fgetl(file));
 timesteps = str2double(fgetl(file));
 moves = str2double(fgetl(file));
@@ -34,7 +34,7 @@ end
 
 h = figure;
 axis tight;
-filename = 'Welding_radiation10e-9.gif';
+filename = 'Welding_rad.gif';
 whitebg([0.5 0.5 0.5]);
 
 

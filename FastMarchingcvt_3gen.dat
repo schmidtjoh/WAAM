@@ -8,7 +8,7 @@ param: V: X Y := #define set V and parameters X, Y
 7 0 1
 8 1 1;
 
-set W :=
+param: W : l :=
 1 2 0.853768
 2 3 0.628986
 3 4 0.576682

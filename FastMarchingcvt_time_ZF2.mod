@@ -67,11 +67,12 @@ var y {(i,ti,j,tj) in A_Exp} binary;
 
 
 var temp {i in V, p in P0} in [0,phi_w];
-var maxtemp in [0,phi_w];
+var abs_temp{(i,j) in W, p in P0} in [0,phi_w];
+param anz_y default number_of_odd_nodes / 2 - 1;
 
 #OBJECTIVE
 
-minimize time: sum{(i,ti,j,tj) in A_Exp} dist[i,j]*y[i,ti,j,tj]+maxtemp;# sum {i in V, p in P} temp[i,p];
+minimize time: sum{(i,ti,j,tj) in A_Exp} dist[i,j]*y[i,ti,j,tj]+sum{(i,j) in W,p in P0} abs_temp[i,j,p];# sum {i in V, p in P} temp[i,p];
 
 #CONSTRAINTS
 
@@ -82,7 +83,7 @@ subject to end_somewhere:
 	sum{(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps] == 1;
 
 subject to limit_y:
-	sum {(i,ti,j,tj) in A_Exp} y[i,ti,j,tj] == number_of_odd_nodes / 2 - 1;
+	sum {(i,ti,j,tj) in A_Exp} y[i,ti,j,tj] <= anz_y;
 
 subject to weld {(i,j) in W}:
 	sum {(i,ti,j,tj) in WW_Exp} x[i,ti,j,tj]+sum {(j,tj,i,ti) in WW_Exp} x[j,tj,i,ti] == 1;
@@ -153,6 +154,9 @@ subject to compute_temp2_end_ub {j in V}:
 							+ sum {i in V: alpha[i,j] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[i,j])*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)*temp[i,number_of_steps-1]
 							+ phi_w * (sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);
 
-subject to compute_maxtemp {i in V, p in P0}:
-	temp[i,p] <= maxtemp;
+subject to compute_abs_temp1 {(i,j) in W, p in P0}:
+	abs_temp[i,j,p] >= temp[i,p]-temp[j,p];	
 	
+subject to compute_abs_temp2 {(i,j) in W, p in P0}:
+	abs_temp[i,j,p] >= temp[j,p]-temp[i,p];			 	
+		
