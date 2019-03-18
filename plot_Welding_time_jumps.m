@@ -1,7 +1,9 @@
-file = fopen('data_time1_horseshoe2.txt','r');
+q=2;
+
+file = fopen('data_time3_jumps.txt','r');
 maxtemp = str2double(fgetl(file));
 timesteps = str2double(fgetl(file));
-moves = str2double(fgetl(file));
+moves = str2double(fgetl(file))+q;
 x_v = str2num(fgetl(file));
 n = size(x_v,2);
 y_v = str2num(fgetl(file));
@@ -34,7 +36,7 @@ end
 
 h = figure;
 axis tight;
-filename = 'Welding_horseshoe2.gif';
+filename = 'Welding_3_jumps.gif';
 whitebg([0.5 0.5 0.5]);
 
 

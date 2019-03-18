@@ -43,9 +43,9 @@ def Cosinussatz(pl,pw,pr): # Berechnung eines Winkels mit Kosinussatz (auch übe
 
 ###########################################################################
 ############################EINGABEPARAMETER###############################
-file = '/Users/jschmidt/Documents/Forschung/WAAM/Modell_AMPL/FastMarchingcvt.dat';
+file = '/Users/jschmidt/Documents/Forschung/WAAM/Modell_AMPL/horseshoe2.dat';
 card_V = 14;
-card_W = 19;
+card_W = 23;
 ###########################################################################
 ###########################################################################
 
@@ -106,13 +106,20 @@ for v in V:
 
 obj_out = open(file.replace('.dat','_rad.dat'),"w");
 obj_out.write("".join(obj_in[l] for l in range(0,card_V+3+card_W+1))+"param intervals := 6;\n"+
-"param: bp slope :=\n"+
-"	1 200 0.8e7\n"+
-"	2 400 1.2e8\n"+
-"	3 600 0.502e9\n"+
-"	4 800 1.4e9\n"+
-"	5 1000 2.9502e9\n"+
-"	6 . 0.50318e10;\n\n"+
+"param bp: 0	1 :=\n"+
+	"1 	0  200\n"+
+	"2 200  400\n"+
+	"3 400  600\n"+
+	"4 600  800\n"+
+	"5 800 1000\n"+
+	"6 1000 1200;\n\n"+
+"param temp_bp: 0	1 :=\n"+
+	"1 	0  1.6e9\n"+
+	"2 1.6e9  2.56e10\n"+
+	"3 2.56e10  1.296e11\n"+
+	"4 1.296e11  4.096e11\n"+
+	"5 4.096e11 1e12\n"+
+	"6 1e12 2.0736e12;\n\n"+	
     "param alpha:"+z1+":=\n "+\
     z2+";\n"+
     "param phi_w := 1800; # maximal temperature\n\
@@ -122,4 +129,4 @@ param v_w := 0.25; # speed of welding head when welding\n\
 param v_m := 1; #speed of welding head when moving without welding\n\
 param delta_t := 1; # length of one timestep\n\
 param a := 0.1; # thermal diffusity\n\
-param b := 0.5726e-8; # radiation parameter (eps*sigma)");
+param b := 1e-11; # radiation parameter (eps*sigma)");

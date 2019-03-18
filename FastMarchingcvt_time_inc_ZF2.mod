@@ -33,7 +33,7 @@ param degree {v in V} = card(INCIDENCE[v]);
 set A = {i1 in V, i2 in V: i1!=i2}; 
 param dist{(i,j) in A} = ceil(sqrt((X[i]-X[j])**2+(Y[i]-Y[j])**2)*100)/100;
 #param dt_A{(i,j) in A} = floor((dist[i,j]/v_m)/delta_t);
-param dt_W{(i,j) in W} = ceil(l[i,j]/(v_w*delta_t)); #eventuell floor ?
+param dt_W{(i,j) in W} = ceil((l[i,j]/v_w)/delta_t); #eventuell floor ?
 param dt_WW{(i,j) in WW} = if (i,j) in W then dt_W[i,j] else dt_W[j,i];
 
 #NEEDED TIME
@@ -57,13 +57,14 @@ param Pi := 4*atan(1);
 # GENERATING MISSING DATA
 
 set WW_Exp = {i in V, pi in P0, j in V, pj in P: (i,j) in WW && pj = pi+dt_WW[i,j]};
-set A_Exp = {i in V, j in V, p in P: (i,j) in A};
+set A_Exp = {i in V, j in V, pj in P:(i,j) in A};
  
 
 #VARIABLES
 
 var x {(i,ti,j,tj) in WW_Exp} binary;
-var y {(i,j,t) in A_Exp} binary;
+var y {(i,j,tj) in A_Exp} binary;
+
 
 var temp {i in V, p in P0} in [0,phi_w];
 var abs_temp{(i,j) in W, p in P0} in [0,phi_w];
@@ -84,7 +85,7 @@ subject to end_somewhere:
 	sum{(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps] == 1;
 
 subject to limit_y:
-	sum {(i,j,t) in A_Exp} y[i,j,t] == number_of_odd_nodes / 2 - 1;
+	sum {(i,j,tj) in A_Exp} y[i,j,tj] == number_of_odd_nodes / 2 - 1;
 
 subject to weld {(i,j) in W}:
 	sum {(i,ti,j,tj) in WW_Exp} x[i,ti,j,tj]+sum {(j,tj,i,ti) in WW_Exp} x[j,tj,i,ti] == 1;
@@ -163,9 +164,9 @@ subject to comupte_spline2 {i in V, p in P0, k in {1..intervals-1}}:
 
 subject to compute_spline3 {i in V, p in P0, k in {1..intervals-1}}:
 	w[i,p,k] >= delta[i,p,k+1];	
+
 subject to compute_abs_temp1 {(i,j) in W, p in P0}:
 	abs_temp[i,j,p] >= temp[i,p]-temp[j,p];	
 	
 subject to compute_abs_temp2 {(i,j) in W, p in P0}:
-	abs_temp[i,j,p] >= temp[j,p]-temp[i,p];			 	
-		
+	abs_temp[i,j,p] >= temp[j,p]-temp[i,p];	

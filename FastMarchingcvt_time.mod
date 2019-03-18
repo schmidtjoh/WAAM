@@ -99,58 +99,58 @@ subject to start_temp {i in V}:
 	
 subject to compute_temp1_lb {i in V, p in P: p<number_of_steps}:#Idee Faktor: kappa_e*a*10**(-6)*dt/(l[j,k]**2)
 	temp[i,p] >= (1-kappa_w)*kappa_e*temp[i,p-1] + kappa_w * phi_w 
-				- sum {(i,p,j,tj) in WW_Exp} kappa_e*a*(1-dist[i,j])*(temp[i,p-1]-temp[j,p-1]) # conduction
-				- sum {j in V: alpha[i,j] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[i,j])*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)*temp[i,p-1]
-				+ sum {j in V: alpha[j,i] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[j,i])*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)*temp[j,p-1]
+				- sum {(i,j) in WW} kappa_e*a*exp(-dist[i,j])*(temp[i,p-1]-temp[j,p-1]) # conduction
+				- sum {j in V: alpha[i,j] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[i,p-1])*b*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)
+				+ sum {j in V: alpha[j,i] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[j,p-1])*b*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)
 				- phi_w * (1-(sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
 subject to compute_temp1_ub {i in V, p in P: p<number_of_steps}:
 	temp[i,p] <= (1-kappa_w)*kappa_e*temp[i,p-1] + kappa_w * phi_w 
-				- sum {(i,p,j,tj) in WW_Exp} kappa_e*a*(1-dist[i,j])*(temp[i,p-1]-temp[j,p-1])
-				- sum {j in V: alpha[i,j] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[i,j])*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)*temp[i,p-1]
-				+ sum {j in V: alpha[j,i] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[j,i])*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)*temp[j,p-1]
+				- sum {(i,j) in WW} kappa_e*a*exp(-dist[i,j])*(temp[i,p-1]-temp[j,p-1])
+				- sum {j in V: alpha[i,j] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[i,p-1])*b*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)
+				+ sum {j in V: alpha[j,i] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[j,p-1])*b*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)
 				+ phi_w * (1-(sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]));	
 
 subject to compute_temp1_end_lb {j in V}:
 	temp[j,number_of_steps] >= (1-kappa_w)*kappa_e*temp[j,number_of_steps-1] + kappa_w * phi_w 
-							- sum {(i,ti,j,number_of_steps) in WW_Exp} kappa_e*a*(1-dist[i,j])*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
-							- sum {i in V: alpha[j,i] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[j,i])*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)*temp[j,number_of_steps-1]
-							+ sum {i in V: alpha[i,j] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[i,j])*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)*temp[i,number_of_steps-1]
+							- sum {(i,j) in WW} kappa_e*a*exp(-dist[i,j])*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
+							- sum {i in V: alpha[j,i] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[j,number_of_steps-1])*b*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)
+							+ sum {i in V: alpha[i,j] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[i,number_of_steps-1])*b*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)
 							- phi_w * (1-sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
 
 subject to compute_temp1_end_ub {j in V}:
 	temp[j,number_of_steps] <= (1-kappa_w)*kappa_e*temp[j,number_of_steps-1] + kappa_w * phi_w 
-							- sum {(i,ti,j,number_of_steps) in WW_Exp} kappa_e*a*(1-dist[i,j])*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
-							- sum {i in V: alpha[j,i] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[j,i])*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)*temp[j,number_of_steps-1]
-							+ sum {i in V: alpha[i,j] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[i,j])*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)*temp[i,number_of_steps-1]
+							- sum {(i,j) in WW} kappa_e*a*exp(-dist[i,j])*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
+							- sum {i in V: alpha[j,i] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[j,number_of_steps-1])*b*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)
+							+ sum {i in V: alpha[i,j] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[i,number_of_steps-1])*b*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)
 							+ phi_w * (1-sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
 
 subject to compute_temp2_lb {i in V, p in P:p<number_of_steps}:
 	temp[i,p] >= kappa_e*temp[i,p-1] 
- 				- sum {(i,p,j,tj) in WW_Exp} kappa_e*a*(1-dist[i,j])*(temp[i,p-1]-temp[j,p-1])
-				- sum {j in V: alpha[i,j] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[i,j])*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)*temp[i,p-1]
-				+ sum {j in V: alpha[j,i] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[j,i])*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)*temp[j,p-1]
+ 				- sum {(i,j) in WW} kappa_e*a*exp(-dist[i,j])*(temp[i,p-1]-temp[j,p-1])
+				- sum {j in V: alpha[i,j] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[i,p-1])*b*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)
+				+ sum {j in V: alpha[j,i] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[j,p-1])*b*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)
 				- phi_w * (sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);	
 
 subject to compute_temp2_ub {i in V, p in P:p<number_of_steps}:
 	temp[i,p] <= kappa_e*temp[i,p-1] 
-				- sum {(i,p,j,tj) in WW_Exp} kappa_e*a*(1-dist[i,j])*(temp[i,p-1]-temp[j,p-1])
-				- sum {j in V: alpha[i,j] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[i,j])*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)*temp[i,p-1]
-				+ sum {j in V: alpha[j,i] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[j,i])*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)*temp[j,p-1]
+				- sum {(i,j) in WW} kappa_e*a*exp(-dist[i,j])*(temp[i,p-1]-temp[j,p-1])
+				- sum {j in V: alpha[i,j] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[i,p-1])*b*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)
+				+ sum {j in V: alpha[j,i] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[j,p-1])*b*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)
 				+ phi_w * (sum {(i,p,j,tj) in WW_Exp} x[i,p,j,tj] + sum {(i,p,j,p) in A_Exp} y[i,p,j,p]);
 
 subject to compute_temp2_end_lb {j in V}:
 	temp[j,number_of_steps] >= kappa_e*temp[j,number_of_steps-1] 
-							- sum {(i,ti,j,number_of_steps) in WW_Exp} kappa_e*a*(1-dist[i,j])*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
-							- sum {i in V: alpha[j,i] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[j,i])*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)*temp[j,number_of_steps-1]
-							+ sum {i in V: alpha[i,j] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[i,j])*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)*temp[i,number_of_steps-1]
+							- sum {(i,j) in WW} kappa_e*a*exp(-dist[i,j])*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
+							- sum {i in V: alpha[j,i] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[j,number_of_steps-1])*b*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)
+							+ sum {i in V: alpha[i,j] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[i,number_of_steps-1])*b*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)
 							- phi_w * (sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);	
 
 subject to compute_temp2_end_ub {j in V}:
 	temp[j,number_of_steps] <= kappa_e*temp[j,number_of_steps-1] 
-							- sum {(i,ti,j,number_of_steps) in WW_Exp} kappa_e*a*(1-dist[i,j])*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
-							- sum {i in V: alpha[j,i] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[j,i])*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)*temp[j,number_of_steps-1]
-							+ sum {i in V: alpha[i,j] > 0 and i != j} << {v in 1..intervals-1} bp[v];{v in 1..intervals} b*slope[v]>> (1-dist[i,j])*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)*temp[i,number_of_steps-1]
+							- sum {(i,j) in WW} kappa_e*a*exp(-dist[i,j])*(temp[i,number_of_steps-1]-temp[j,number_of_steps-1])
+							- sum {i in V: alpha[j,i] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[j,number_of_steps-1])*b*(alpha[j,j]/360)*sin(alpha[j,i]*Pi/180)
+							+ sum {i in V: alpha[i,j] > 0 and i != j} (<< {v in 1..intervals-1} bp[v];{v in 1..intervals} slope[v]>> temp[i,number_of_steps-1])*b*(alpha[i,i]/360)*sin(alpha[i,j]*Pi/180)
 							+ phi_w * (sum {(i,ti,j,number_of_steps) in WW_Exp} x[i,ti,j,number_of_steps]);
 
 subject to compute_maxtemp {i in V, p in P0}:
